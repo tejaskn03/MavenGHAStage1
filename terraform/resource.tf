@@ -54,13 +54,13 @@ resource "aws_iam_role" "eb_role" {
 # Elastic Beanstalk Enhanced Health policy
 resource "aws_iam_role_policy_attachment" "eb_role_policy_attachment" {
   role       = aws_iam_role.eb_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkEnhancedHealth"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth"
 }
 
 # Elastic Beanstalk Managed Updates policy
 resource "aws_iam_role_policy_attachment" "eb_role_policy_attachment2" {
   role       = aws_iam_role.eb_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
 }
 
 # Elastic Beanstalk application
