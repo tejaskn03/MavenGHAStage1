@@ -39,5 +39,81 @@ jobs:
               with:
                   name: streamflix-department
                   path: eb-deployment/
+    terraform: 
+        name: Terraform_infrastructure
+        runs-on: ubuntu-latest
+        needs: Build
+        steps:
+            - name : Checkout
+              uses: actions/checkout@v3
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v6
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: eu-north-1
+                  role-session-name: githublink
+            - name: Test OIDC authentication
+              run: |
+                aws sts get-caller-identity
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v2
+            - name: Terraform Init
+              working-directory: ./terraform
+              run: terraform init
+            - name: Terraform validate
+              working-directory: ./terraform
+              run: terraform validate
+            - name: Terraform plan
+              working-directory: ./terraform
+              run: terraform plan
+            - name: Terraform apply
+              working-directory: ./terraform
+              run: terraform apply -auto-approve
+    deploy:
+        name: Deploy_to_EBS
+        runs-on: ubuntu-latest
+        needs: terraform
+        steps:
+            - name : download artifact
+              uses: actions/download-artifact@v4
+              with:
+                    name: streamflix-department
+                    path: deployment
+            - name: verify deployment file
+              run: |
+                echo "Verifying the downloaded artifact..."
+                ls -l deployment
+                echo "Verify proc files"
+                cat deployment/Procfile
+                test -f deployment/Procfile && echo "Procfile exists."
+                test -f deployment/*.jar && echo "Jar file exists."
+            - name: create zip file
+              run: |
+                cd deployment
+                zip -r ../streamflix.zip .
+                cd ..
+                unzip -l streamflix.zip
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v6
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: eu-north-1
+                  role-session-name: githublink
+            - name: Test OIDC authentication
+              run: |
+                aws sts get-caller-identity
+            - name: Deploy to Elastic Beanstalk
+              uses: aws-actions/elastic-beanstalk-deploy@v1
+              with:
+                  application-name: streamflix
+                  environment-name: streamflix-dev
+                  version-label: v1
+                  region: eu-north-1
+                  deployment-package-path: streamflix.zip
+
+
+
+            
+        
         
 
