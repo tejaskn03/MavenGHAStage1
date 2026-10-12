@@ -1,0 +1,43 @@
+name: Build_Test
+on:
+    workflow_dispatch:
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+    Build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: setup java 21
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: 21
+                  cache: maven
+            - name : java and maven version
+              run: |
+                java -version
+                mvn -version
+            - name: Build with Maven
+              run: mvn clean package
+            - name: verify jar file
+              run: |
+                ls -l target/*.jar
+                echo "Build completed successfully."
+            - name: prepare EBS package
+              run: |
+                mkdir -p eb-deployment
+                cp target/*.jar eb-deployment/
+                echo "web: java -jar *.jar" > eb-deployment/Procfile"
+                ls -la eb-deployment/
+            - name: upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: streamflix-department
+                  path: eb-deployment/
+        
+
