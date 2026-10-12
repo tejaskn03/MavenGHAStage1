@@ -1,9 +1,11 @@
 name: oidc Test
-on:   
+on:
     workflow_dispatch:
-        permissions:
-            id-token: write
-            contents: read
+
+permissions:
+    id-token: write
+    contents: read
+
 jobs:
     aws_authentication:
         runs-on: ubuntu-latest
